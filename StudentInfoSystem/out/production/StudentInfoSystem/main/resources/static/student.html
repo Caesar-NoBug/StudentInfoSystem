@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生信息管理系统</title>
+    <link rel="icon" href="http://tva1.sinaimg.cn/large/0086QolKly1h7k7prw4zgj305k05kwer.jpg">
+    <style>
+        *{
+            margin: 0 auto;
+            //display: flex;
+            vertical-align: middle;
+            align-items: center;
+            text-align: center
+        }
+        table{
+            border-spacing: 0;
+        }
+        td{
+            width: 200px;
+            border: 1px solid;
+        }
+        th{
+            border: 1px solid;
+        }
+        input{
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        <input type="text" id="studentId" placeholder="请输入学号" style="margin-right: 30px">
+        <input type="text" id="name" placeholder="请输入姓名"style="margin-right: 10px">
+        <input type="button" value="添加" onclick="insertStudent()"style="margin-left: 60px">
+        <input type="button" value="搜索" onclick="selectStudent()"style="margin-right: 40px">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+
+    </table>
+    <input type="button" value="刷新" onclick="backtrack()" style="margin-right: 5px">
+    <input type="button" value="撤回" onclick="withdraw()" style="margin-right: 335px">
+    <input type="button" value="上一页" onclick="getPrevPage()"style="margin-right: 20px">
+    <input type="button" value="下一页" onclick="getNextPage()">
+    <span id="page"></span>
+    <script>
+        //运行部分
+        var page = 1;
+        var minPage = 1;
+        var maxPage = 1;
+        var atMain = true;
+        const pageSize = 10;
+        const ID_FORMAT = /^\d+$/;
+        var path = "http://localhost:14606/student";
+        var preId = "", preName = "";
+        var arr = [];
+
+        backtrack();
+
+        function deleteStudent(object) {
+            let table = object.parentNode.parentNode.parentNode;
+            let tr = object.parentNode.parentNode;
+            let studentId = tr.cells[0].innerText;
+            let name = tr.cells[1].innerText;
+            let params = "studentId=" + studentId + "&name=" + name;
+
+            table.removeChild(tr);
+            request("DELETE", path, params);
+
+            //TODO: 删除失败的逻辑
+        }
+
+        function updateStudent(object) {
+
+            if(object.innerHTML == "修改"){
+
+                let tr = object.parentNode.parentNode;
+                object.innerHTML = "确定";
+                preId = tr.cells[0].innerText;
+                preName = tr.cells[1].innerText;
+
+                tr.cells[0].contentEditable = "true";
+                tr.cells[1].contentEditable = "true";
+
+            }
+            else{
+                let table = object.parentNode.parentNode.parentNode;
+                let tr = object.parentNode.parentNode;
+                object.innerHTML = "修改";
+
+                tr.cells[0].contentEditable = "false";
+                tr.cells[1].contentEditable = "false";
+                let currId = "", currName = "";
+                currId = tr.cells[0].innerText;
+                currName = tr.cells[1].innerText;
+                let params = [{
+                    studentId : preId,
+                    name : preName
+                },{
+                    studentId: currId,
+                    name: currName
+                }];
+                request("PUT", path, params);
+            }
+
+        }
+
+        function insertStudent() {
+            let studentId = document.getElementById("studentId").value;
+            let name = document.getElementById("name").value;
+
+            //TODO: 验证学号大于0
+            if(!studentId || !name){
+                window.alert("请填写完整信息！！");
+                return;
+            }
+
+            if(!ID_FORMAT.test(studentId)){
+                window.alert("学号必须为纯数字！");
+                return;
+            }
+
+            let student = {
+                studentId : studentId,
+                name : name
+            }
+
+            request("POST", path, student);
+            flushData();
+        }
+
+        function selectStudent() {
+            let studentId = document.getElementById("studentId").value;
+            if(!studentId) studentId = "undefined";
+            let name = document.getElementById("name").value;
+            if(!name) name = "undefined";
+
+            if(!studentId && !name){
+                window.alert("请至少添加一个条件！！");
+                return;
+            }
+
+            let params = "studentId=" + studentId + "&name=" + name;
+
+            let res = request("GET", path, params);
+
+            minPage = res.minPage;
+            maxPage = res.maxPage;
+            page = minPage;
+            arr = res.arr;
+            atMain = false;
+
+            flushData();
+        }
+
+        function flushData() {
+
+            //window.alert(arr.length)
+            if(atMain){
+                if(arr.length <= (page - minPage) * pageSize){
+                    page --;
+                    return;
+                }
+            }
+            document.getElementById("page").innerHTML = "第" + page + "页";
+            let tbody = document.querySelector('tbody');
+
+            //清空表格
+            tbody.innerHTML = "";
+
+            for (let i = (page - minPage) * pageSize; i < (page - minPage + 1) * pageSize && i < arr.length; i ++) {
+                let tr = document.createElement('tr');
+                tbody.appendChild(tr); //创建行
+                for (let k in arr[i]) {
+                    let td = document.createElement('td');
+                    td.innerHTML = arr[i][k];
+                    tr.appendChild(td); //创建列
+                }
+
+                let td = document.createElement('td');
+                td.innerHTML = '<button onclick="deleteStudent(this)">删除</button>' +
+                    '<button onclick="updateStudent(this)">修改</button>';
+                tr.appendChild(td);
+            }
+        }
+
+        function withdraw() {
+            let param = "withdraw";
+            request("PUT", path, param);
+        }
+
+        function request(method, url, params) {
+            let xhttp = new XMLHttpRequest();
+
+            if(method === "POST" || method === "PUT"){
+                xhttp.dataType = "json";
+                xhttp.open(method, url, false);
+                xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhttp.send(JSON.stringify(params));
+            }
+            else{
+                xhttp.open(method, url + "?" + params, false);
+                xhttp.send();
+            }
+
+            let resp = JSON.parse(xhttp.responseText);
+            if(resp.message) {
+                window.alert(resp.message);
+            }
+            return resp.data;
+        }
+
+        function getPage(page) {
+            let param = "page=" + page;
+            let res = request("GET", path, param);
+            minPage = res.minPage;
+            maxPage = res.maxPage;
+            page = minPage;
+            arr = res.arr;
+        }
+
+        function getPrevPage() {
+            page --;
+
+            if (page < minPage) {
+                if(atMain) {
+                    if(page >= 1) {
+                        getPage(page);
+                    }
+                    else {
+                        page = 1;
+                        return;
+                    }
+                }else {
+                    page = minPage;
+                }
+            }
+
+            flushData();
+        }
+
+        function getNextPage(){
+            page ++;
+
+            if(page > maxPage){
+                if(atMain) {
+                    getPage(page);
+                }else {
+                    page = maxPage;
+                }
+            }
+
+            flushData();
+        }
+
+        function backtrack() {
+            atMain = true;
+            getPage(1);
+            flushData();
+        }
+
+    </script>
+
+</body>
+</html>

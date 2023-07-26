@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <div class="container">
+        <div class="bg"></div>
+        <div class="bg-mask"></div>
+        <div class="content">
+            <img class="avatar" src="http://tva1.sinaimg.cn/large/0086QolKgy1hawbl5nkskj309m0bygpc.jpg">
+            <div class="name_block">
+                <div class="name">刘宏涛</div>
+                <div class="info">正在拨打...</div>
+            </div>
+            <div class="buttons">
+                <div class="button_block">
+                    <image class="button" src="./switch.png"></image>
+                    <div>翻转</div>
+                </div>
+                <div class="button_clock">
+                    <image class="button" src="./camera.png"></image>
+                    <div>摄像头</div>
+                </div>
+                <div class="button_block">
+                    <image class="button" src="./microphone.png"></image>
+                    <div>麦克风</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</head>
+<body>
+
+</body>
+</html>
+
+<style>
+    .container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        margin-top: 0;
+        /*margin: 100px auto;*/
+        overflow: hidden;
+    }
+    .bg {
+        height: 100%;
+        background: url(http://tva1.sinaimg.cn/large/0086QolKgy1hawbl5nkskj309m0bygpc.jpg) center center no-repeat;
+        background-size: cover;
+        background-attachment:fixed;
+        filter: blur(1rem);
+    }
+    .bg-mask{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+    }
+    .content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 15px;
+        color: #ffffff;
+        text-align: center;
+    }
+    .avatar {
+        position: absolute;
+        top: 12rem;
+        left: 50%;
+        margin-left:-12rem;
+        width: 24rem;
+        height: 24rem;
+        border-radius: 12rem;
+    }
+    .name_block{
+        position: absolute;
+        top: 38rem;
+        left: 50%;
+        margin-left: -8rem;
+        width: 16rem;
+        text-align: center;
+        color: white;
+        font-size: 0;
+    }
+    .name{
+        font-size: 4rem;
+    }
+    .info{
+        font-size: 2rem;
+        font-weight: lighter;
+    }
+    .buttons{
+        position: absolute;
+        top: 48rem;
+        left: 50%;
+        margin-left: -24rem;
+        width: 48rem;
+        font-size: 2rem;
+
+        color: white;
+        backdrop-filter: brightness(90%);
+        border-radius: 2rem;
+        display: flex;
+    }
+    .button_block{
+        width: 25%;
+        height: 40%;
+        margin-left: 4%;
+        margin-right: 4%;
+        margin-bottom: 10%;
+    }
+    .button{
+        width: 80%;
+    }
+</style>
